@@ -175,7 +175,6 @@ class TankGame:
             else:
                 obstacle = Obstacle(posx, posy)
             if (posx, posy) != (self.tank1.posx, self.tank1.posy) and (posx, posy) != (self.tank2.posx, self.tank2.posy) and (posx, posy) not in [(o.posx, o.posy) for o in obstacles]:
-
                 obstacles.append(obstacle)
         return obstacles
 
@@ -305,7 +304,6 @@ class TankGame:
                 self.tank1.move("left", self.obstacles, (self.tank2.posx, self.tank2.posy))
             elif keyboard.is_pressed('d'):
                 self.tank1.move("right", self.obstacles, (self.tank2.posx, self.tank2.posy))
-
             elif keyboard.is_pressed('e'):
                 if not self.bullet1:  # 玩家1发射子弹
                     self.bullet1 = self.tank1.fire_bullet()
@@ -323,12 +321,9 @@ class TankGame:
             elif keyboard.is_pressed('4'):
                 if not self.bullet2:  # 玩家2发射子弹
                    self.bullet2 = self.tank2.fire_bullet()
-
             # 检查是否拾取道具
             self.check_powerup_pickup(self.tank1)
             self.check_powerup_pickup(self.tank2)
-
-
             time.sleep(0.1)  # 适当降低检查频率
 
     def play(self):
