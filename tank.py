@@ -5,7 +5,7 @@ import threading
 import keyboard
 import os
 
-total_shape = ["︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞"]
+total_shape = ["︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞", "⛈️"]
 shape_tank1 = -1
 shape_tank2 = -1
 
@@ -16,9 +16,10 @@ class Object:
         self.posx = posx
         self.posy = posy
 
+
 # 子类Tank
 class Tank(Object):
-    def __init__(self, posx, posy,bullet_shape):
+    def __init__(self, posx, posy, bullet_shape):
         super().__init__(posx, posy)
         self.health = 3  # 初始血量
         self.attack_power = 1  # 初始攻击力
@@ -26,33 +27,48 @@ class Tank(Object):
         self.direction = "up"  # 初始朝向
         self.powerup_active = False  # 是否激活了道具
         self.powerup_timer = None  # 定时器线程
-        self.bullet_shape =bullet_shape  # 初始化子弹形状
+        self.bullet_shape = bullet_shape  # 初始化子弹形状
         self.tempbullet_shape = bullet_shape  # 备份子弹形状
 
     def move(self, direction, obstacles, enemy_pos):
         if direction == "up":
-            if self.direction == "up" and (self.posx, self.posy - 1) not in [(o.posx, o.posy) for o in obstacles] and (self.posx, self.posy - 1) != enemy_pos:
+            if self.direction == "up" and (self.posx, self.posy - 1) not in [(o.posx, o.posy) for o in obstacles] and (
+            self.posx, self.posy - 1) != enemy_pos:
                 self.posy = max(0, self.posy - 1)
-            elif self.direction == "down": pass
-            else: self.direction = "up"
+            elif self.direction == "down":
+                pass
+            else:
+                self.direction = "up"
 
         elif direction == "down":
-            if self.direction == "down" and (self.posx, self.posy + 1) not in [(o.posx, o.posy) for o in obstacles] and (self.posx, self.posy + 1) != enemy_pos:
+            if self.direction == "down" and (self.posx, self.posy + 1) not in [(o.posx, o.posy) for o in
+                                                                               obstacles] and (
+            self.posx, self.posy + 1) != enemy_pos:
                 self.posy = min(game.height - 1, self.posy + 1)
-            elif self.direction == "up": pass
-            else: self.direction = "down"
+            elif self.direction == "up":
+                pass
+            else:
+                self.direction = "down"
 
         elif direction == "left":
-            if self.direction == "left" and (self.posy, self.posx - 1) not in [(o.posy, o.posx) for o in obstacles] and (self.posx - 1, self.posy) != enemy_pos:
+            if self.direction == "left" and (self.posy, self.posx - 1) not in [(o.posy, o.posx) for o in
+                                                                               obstacles] and (
+            self.posx - 1, self.posy) != enemy_pos:
                 self.posx = max(0, self.posx - 1)
-            elif self.direction == "right": pass
-            else: self.direction = "left"
+            elif self.direction == "right":
+                pass
+            else:
+                self.direction = "left"
 
         elif direction == "right":
-            if self.direction == "right" and (self.posy, self.posx + 1) not in [(o.posy, o.posx) for o in obstacles] and (self.posx + 1, self.posy) != enemy_pos:
+            if self.direction == "right" and (self.posy, self.posx + 1) not in [(o.posy, o.posx) for o in
+                                                                                obstacles] and (
+            self.posx + 1, self.posy) != enemy_pos:
                 self.posx = min(game.width - 1, self.posx + 1)
-            elif self.direction == "left": pass
-            else: self.direction = "right"
+            elif self.direction == "left":
+                pass
+            else:
+                self.direction = "right"
 
     def apply_powerup(self, powerup):
         if powerup.type == "health":
@@ -77,10 +93,9 @@ class Tank(Object):
         self.attack_power //= 2  # 恢复攻击力
         self.powerup_active = False
         self.bullet_shape = self.tempbullet_shape  # 恢复原来的形状
-    
+
     def fire_bullet(self):
         return Bullet(self.posx, self.posy, self.direction, self.bullet_shape)
-
 
     def Tank_Directions(self, shape):
         t = total_shape[shape][0]
@@ -90,10 +105,14 @@ class Tank(Object):
             t = total_shape[shape][2]
         elif self.direction == "right":
             t = total_shape[shape][3]
+
+        if self.powerup_active == True:
+            t = total_shape[3]
         return t
 
     def is_hit(self):
         return self.health <= 0
+
 
 # 子类Bullet
 class Bullet(Object):
@@ -101,7 +120,6 @@ class Bullet(Object):
         super().__init__(posx, posy)
         self.direction = direction  # 子弹方向
         self.shape = shape  # 子弹形状
-
 
     def move(self):
         if self.direction == "up":
@@ -113,10 +131,12 @@ class Bullet(Object):
         elif self.direction == "right":
             self.posx += 1
 
+
 # 子类Obstacle
 class Obstacle(Object):
     def __init__(self, posx, posy):
         super().__init__(posx, posy)
+
 
 # 子类SpecialObstacle
 class SpecialObstacle(Obstacle):
@@ -129,7 +149,6 @@ class SpecialObstacle(Obstacle):
         if self.health <= 0:
             return True  # 返回True表示该障碍物已被摧毁
         return False
-    
 
 
 # 子类SpecialObstacle
@@ -152,13 +171,14 @@ class PowerUp(Object):
         self.type = type  # 道具类型: 'health', 'attack', 'defense', 'power_bullet'
         self.value = value  # 道具加成值
 
+
 # 游戏类
 class TankGame:
     def __init__(self, width, height, num_obstacles, num_powerups):
         self.width = width
         self.height = height
-        self.tank1 = Tank(random.randint(0, width - 1), random.randint(0, height - 1),"💣")  # 玩家1
-        self.tank2 = Tank(random.randint(0, width - 1), random.randint(0, height - 1),"🧨")  # 玩家2
+        self.tank1 = Tank(random.randint(0, width - 1), random.randint(0, height - 1), "💣")  # 玩家1
+        self.tank2 = Tank(random.randint(0, width - 1), random.randint(0, height - 1), "🧨")  # 玩家2
         self.obstacles = self.generate_obstacles(num_obstacles)
         self.powerups = self.generate_powerups(num_powerups)
         self.bullet1 = None
@@ -174,7 +194,8 @@ class TankGame:
                 obstacle = SpecialObstacle(posx, posy)
             else:
                 obstacle = Obstacle(posx, posy)
-            if (posx, posy) != (self.tank1.posx, self.tank1.posy) and (posx, posy) != (self.tank2.posx, self.tank2.posy) and (posx, posy) not in [(o.posx, o.posy) for o in obstacles]:
+            if (posx, posy) != (self.tank1.posx, self.tank1.posy) and (posx, posy) != (
+            self.tank2.posx, self.tank2.posy) and (posx, posy) not in [(o.posx, o.posy) for o in obstacles]:
                 obstacles.append(obstacle)
         return obstacles
 
@@ -202,22 +223,53 @@ class TankGame:
     def draw_map(self):
         self.clear_screen()
 
+        # 画出空地和坦克
         game_map = [["🟫" for _ in range(self.width)] for _ in range(self.height)]
         game_map[self.tank1.posy][self.tank1.posx] = self.tank1.Tank_Directions(shape_tank1)  # Tank 1
         game_map[self.tank2.posy][self.tank2.posx] = self.tank2.Tank_Directions(shape_tank2)  # Tank 2
-
+        # 画出障碍物
         for obstacle in self.obstacles:
             if isinstance(obstacle, SpecialObstacle):
-                game_map[obstacle.posy][obstacle.posx] = "🎄"  # 特殊障碍物
+                game_map[obstacle.posy][obstacle.posx] = "🛖"  # 特殊障碍物
             else:
-                game_map[obstacle.posy][obstacle.posx] = "🧱"  # 普通障碍物
+                game_map[obstacle.posy][obstacle.posx] = "🪨"  # 普通障碍物
+        # 画出道具
         for powerup in self.powerups:
             game_map[powerup.posy][powerup.posx] = "🧀"  # 道具
-
+        # 画出子弹
         if self.bullet1:
-            game_map[self.bullet1.posy][self.bullet1.posx] = self.bullet1.shape  # Bullet 1💣
+            if self.bullet1.posy == self.tank1.posy and self.bullet1.posx == self.tank1.posx:
+               pass
+            else:
+                x = 0
+                y = 0
+                if self.bullet1.direction == "up": y = -1
+                elif self.bullet1.direction == "down": y = 1
+                elif self.bullet1.direction == "left": x = -1
+                elif self.bullet1.direction == "right": x = 1
+
+                if self.bullet1.posy >= 0 or self.bullet1.posy < self.height or self.bullet1.posx >= 0 or self.bullet1.posx < self.width:
+                    if game_map[self.bullet1.posy + y][self.bullet1.posx + x] not in {"🟫","🧀"} :
+                        game_map[self.bullet1.posy + y][self.bullet1.posx + x] = "💥"  # hit
+                    else:
+                        game_map[self.bullet1.posy][self.bullet1.posx] = self.bullet1.shape  # Bullet 1💣
+
         if self.bullet2:
-            game_map[self.bullet2.posy][self.bullet2.posx] = self.bullet2.shape  # Bullet 2🧨
+            if self.bullet2.posy == self.tank2.posy and self.bullet2.posx == self.tank2.posx:
+               pass
+            else:
+                x = 0
+                y = 0
+                if self.bullet2.direction == "up": y = -1
+                elif self.bullet2.direction == "down": y = 1
+                elif self.bullet2.direction == "left": x = -1
+                elif self.bullet2.direction == "right": x = 1
+
+                if self.bullet2.posy >= 0 or self.bullet2.posy < self.height or self.bullet2.posx >= 0 or self.bullet2.posx < self.width:
+                    if game_map[self.bullet2.posy + y][self.bullet2.posx + x] not in {"🟫","🧀"} :
+                        game_map[self.bullet2.posy + y][self.bullet2.posx + x] = "💥"  # hit
+                    else:
+                        game_map[self.bullet2.posy][self.bullet2.posx] = self.bullet2.shape  # Bullet 2🧨
 
         print(
             f"Player 1 Health: {self.tank1.health} | Attack: {self.tank1.attack_power} | Defense: {self.tank1.defense_power}")
@@ -234,12 +286,6 @@ class TankGame:
                 tank.apply_powerup(powerup)
                 self.powerups.remove(powerup)  # 从游戏中移除道具
 
-    def check_powerup_pickup(self, tank):
-        for powerup in self.powerups[:]:  # 创建列表副本以便安全删除
-            if (tank.posx, tank.posy) == (powerup.posx, powerup.posy):
-                tank.apply_powerup(powerup)
-                self.powerups.remove(powerup)  # 从游戏中移除道具
-
     def move_bullets(self):
         while self.running:
             if self.bullet1:
@@ -247,9 +293,10 @@ class TankGame:
                 if self.bullet1.posy < 0 or self.bullet1.posy >= self.height or self.bullet1.posx < 0 or self.bullet1.posx >= self.width:
                     self.bullet1 = None  # 子弹超出边界
                 elif (self.bullet1.posx, self.bullet1.posy) == (self.tank2.posx, self.tank2.posy):
-
-                    hurt=self.tank1.attack_power-self.tank2.defense_power
-                    if hurt>0:
+                    # 显示
+                    print("test")
+                    hurt = self.tank1.attack_power - self.tank2.defense_power
+                    if hurt > 0:
                         self.tank2.health -= hurt
                         self.bullet1 = None  # 子弹消失
                 else:
@@ -257,6 +304,7 @@ class TankGame:
                         if (self.bullet1.posx, self.bullet1.posy) == (obstacle.posx, obstacle.posy):
                             if isinstance(obstacle, SpecialObstacle):
                                 if obstacle.hit():
+                                    print("test")
                                     self.obstacles.remove(obstacle)  # 移除已摧毁的特殊障碍物
                                     # print("特殊障碍物被摧毁！")
                                 self.bullet1 = None  # 子弹消失
@@ -271,9 +319,8 @@ class TankGame:
                     self.bullet2 = None  # 子弹超出边界
                 elif (self.bullet2.posx, self.bullet2.posy) == (self.tank1.posx, self.tank1.posy):
 
-                    hurt=self.tank2.attack_power-self.tank1.defense_power
-                    if hurt>0:
-
+                    hurt = self.tank2.attack_power - self.tank1.defense_power
+                    if hurt > 0:
                         self.tank1.health -= hurt
                         self.bullet2 = None  # 子弹消失
                 else:
@@ -320,7 +367,7 @@ class TankGame:
 
             elif keyboard.is_pressed('4'):
                 if not self.bullet2:  # 玩家2发射子弹
-                   self.bullet2 = self.tank2.fire_bullet()
+                    self.bullet2 = self.tank2.fire_bullet()
             # 检查是否拾取道具
             self.check_powerup_pickup(self.tank1)
             self.check_powerup_pickup(self.tank2)
