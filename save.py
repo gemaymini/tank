@@ -108,8 +108,8 @@ class TankGame:
     def __init__(self, width, height, num_obstacles):
         self.width = width
         self.height = height
-        self.tank1 = Tank(width // 4, height - 2)  # 玩家1
-        self.tank2 = Tank(3 * width // 4, height - 2)  # 玩家2
+        self.tank1 = Tank(random.randint(0, width - 1), random.randint(0, height - 1))  # 玩家1
+        self.tank2 = Tank(random.randint(0, width - 1), random.randint(0, height - 1))  # 玩家2
         self.obstacles = self.generate_obstacles(num_obstacles)
         self.bullet1 = None
         self.bullet2 = None
@@ -218,7 +218,14 @@ class TankGame:
 
 # 运行游戏
 if __name__ == "__main__":
-    game = TankGame(width=10, height=10, num_obstacles=5)
+    print("欢迎来到坦克大战！\n");
+    print("玩家1使用 WASD 控制，玩家2使用 5213 控制。\n");
+    print("玩家1按下O发射子弹, 玩家2按下Enter发射子弹。\n");
+    width=int(input("请输入地图宽度：")) 
+    height=int(input("请输入地图高度："))
+    num_obstacles=int(input("请输入障碍物数量："))
+    print("游戏开始！\n");
+    game = TankGame(width, height, num_obstacles)
     input_thread = threading.Thread(target=game.handle_input)
     input_thread.start()
     game.play()
