@@ -232,8 +232,8 @@ if __name__ == "__main__":
     width=int(input("请输入地图宽度：")) 
     height=int(input("请输入地图高度："))
     num_obstacles=int(input("请输入障碍物数量："))
-    shape_tank1=int(input("请选择玩家一的坦克形状:\n1.↑↓←→\n2.㊤㊦㊧㊨\n3.▲▼◄►\n"))
-    shape_tank2=int(input("请选择玩家二的坦克形状:\n1.↑↓←→\n2.㊤㊦㊧㊨\n3.▲▼◄►\n"))
+    shape_tank1=int(input("请选择玩家一的坦克形状:\n1.↑↓←→\n2.㊤㊦㊧㊨\n3.▲▼◄►\n"))-1
+    shape_tank2=int(input("请选择玩家二的坦克形状:\n1.↑↓←→\n2.㊤㊦㊧㊨\n3.▲▼◄►\n"))-1
     print("游戏开始！\n");
     game = TankGame(width, height, num_obstacles)
     input_thread = threading.Thread(target=game.handle_input)
