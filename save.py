@@ -173,13 +173,13 @@ class TankGame:
     def handle_input(self):
         while self.running:
             # 玩家1控制
-            if keyboard.is_pressed('w'):
+            if keyboard.is_pressed('w') and (self.tank1.posx,self.tank1.posy-1) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank1.posx, self.tank1.posy-1) != (self.tank2.posx, self.tank2.posy):
                 self.tank1.move("up")
-            elif keyboard.is_pressed('s'):
+            elif keyboard.is_pressed('s')and (self.tank1.posx,self.tank1.posy+1) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank1.posx, self.tank1.posy+1) != (self.tank2.posx, self.tank2.posy):
                 self.tank1.move("down")
-            elif keyboard.is_pressed('a'):
+            elif keyboard.is_pressed('a') and (self.tank1.posx-1,self.tank1.posy) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank1.posx-1, self.tank1.posy) != (self.tank2.posx, self.tank2.posy):
                 self.tank1.move("left")
-            elif keyboard.is_pressed('d'):
+            elif keyboard.is_pressed('d') and (self.tank1.posx+1,self.tank1.posy) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank1.posx+1, self.tank1.posy) != (self.tank2.posx, self.tank2.posy):
                 self.tank1.move("right")
             elif keyboard.is_pressed('o'):
                 if not self.bullet1:  # 玩家1发射子弹
@@ -187,13 +187,13 @@ class TankGame:
                     print(f"Player 1 shot from ({self.bullet1.posx}, {self.bullet1.posy})!")
 
             # 玩家2控制
-            if keyboard.is_pressed('5'):
+            if keyboard.is_pressed('5') and (self.tank2.posx,self.tank2.posy-1) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank2.posx, self.tank2.posy-1) != (self.tank1.posx, self.tank1.posy):
                 self.tank2.move("up")
-            elif keyboard.is_pressed('2'):
+            elif keyboard.is_pressed('2') and (self.tank2.posx,self.tank2.posy+1) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank2.posx, self.tank2.posy+1) != (self.tank1.posx, self.tank1.posy):
                 self.tank2.move("down")
-            elif keyboard.is_pressed('1'):
+            elif keyboard.is_pressed('1') and (self.tank2.posx-1,self.tank2.posy) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank2.posx-1, self.tank2.posy) != (self.tank1.posx, self.tank1.posy):
                 self.tank2.move("left")
-            elif keyboard.is_pressed('3'):
+            elif keyboard.is_pressed('3') and (self.tank2.posx+1,self.tank2.posy) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank2.posx+1, self.tank2.posy) != (self.tank1.posx, self.tank1.posy):
                 self.tank2.move("right")
             elif keyboard.is_pressed('enter'):
                 if not self.bullet2:  # 玩家2发射子弹
