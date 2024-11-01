@@ -1,4 +1,4 @@
-import random 
+import random
 import time
 import threading
 import keyboard  # 确保安装 keyboard 库
@@ -6,7 +6,7 @@ import os
 
 # 基类Object
 class Object:
-    def __init__(self, posx, posy):
+    def __init__(self, posx, posy,):
         self.posx = posx
         self.posy = posy
 
@@ -20,17 +20,51 @@ class Tank(Object):
 
     def move(self, direction):
         if direction == "up":
-            self.posy = max(0, self.posy - 1)
-            self.direction = "up"
+
+            # 方向已经向上 开始移动
+            if self.direction == "up": self.posy = max(0, self.posy - 1)
+            # 方向相反 不移动
+            elif self.direction == "down": pass
+            # 方向不向上 改变方向
+            else: self.direction = "up"
+
         elif direction == "down":
-            self.posy = min(game.height - 1, self.posy + 1)
-            self.direction = "down"
+
+            # 方向已经向下 开始移动
+            if self.direction == "down": self.posy = min(game.height - 1, self.posy + 1)
+            # 方向相反 不移动
+            elif self.direction == "up": pass
+            # 方向不向下 改变方向
+            else: self.direction = "down"
+
         elif direction == "left":
-            self.posx = max(0, self.posx - 1)
-            self.direction = "left"
+
+            # 方向已经向左 开始移动
+            if self.direction == "left": self.posx = max(0, self.posx - 1)
+            # 方向相反 不移动
+            elif self.direction == "right": pass
+            # 方向不向左 改变方向
+            else: self.direction = "left"
+
         elif direction == "right":
-            self.posx = min(game.width - 1, self.posx + 1)
-            self.direction = "right"
+
+            # 方向已经向左 开始移动
+            if self.direction == "right": self.posx = min(game.width - 1, self.posx + 1)
+            # 方向相反 不移动
+            elif self.direction == "left": pass
+            # 方向不向左 改变方向
+            else: self.direction = "right"
+
+    # 返回表示当前坦克外形的字符
+    def Tank_Directions(self):
+        t = '↑'
+        if self.direction == "down":
+            t = '↓'
+        elif self.direction == "left":
+            t = '←'
+        elif self.direction == "right":
+            t = '→'
+        return t
 
     def is_hit(self):
         return self.health <= 0
@@ -98,8 +132,8 @@ class TankGame:
     def draw_map(self):
         self.clear_screen()
         game_map = [["." for _ in range(self.width)] for _ in range(self.height)]
-        game_map[self.tank1.posy][self.tank1.posx] = "1"  # Tank 1
-        game_map[self.tank2.posy][self.tank2.posx] = "2"  # Tank 2
+        game_map[self.tank1.posy][self.tank1.posx] = self.tank1.Tank_Directions()  # Tank 1
+        game_map[self.tank2.posy][self.tank2.posx] = self.tank2.Tank_Directions()  # Tank 2
         for obstacle in self.obstacles:
             game_map[obstacle.posy][obstacle.posx] = "#"  # Obstacle
         if self.bullet1:
@@ -184,8 +218,7 @@ class TankGame:
 
 # 运行游戏
 if __name__ == "__main__":
-    
-    game = TankGame(width=50, height=50, num_obstacles=50)
+    game = TankGame(width=10, height=10, num_obstacles=5)
     input_thread = threading.Thread(target=game.handle_input)
     input_thread.start()
     game.play()
