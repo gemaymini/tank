@@ -4,6 +4,9 @@ import threading
 import keyboard  # 确保安装 keyboard 库
 import os
 
+total_shape=["↑↓←→","㊤㊦㊧㊨","▲▼◄►"]
+shape_tank1=-1;
+shape_tank2=-1;
 # 基类Object
 class Object:
     def __init__(self, posx, posy,):
@@ -18,11 +21,12 @@ class Tank(Object):
         self.health = 3  # 初始血量
         self.direction = "up"  # 初始朝向
 
-    def move(self, direction):
+    def move(self, direction,obstacles,emeny_pos):
         if direction == "up":
 
             # 方向已经向上 开始移动
-            if self.direction == "up": self.posy = max(0, self.posy - 1)
+            if self.direction == "up" and (self.posx,self.posy-1) not in [(o.posx, o.posy) for o in obstacles] and  (self.posx,self.posy-1)!=emeny_pos: 
+                self.posy = max(0, self.posy - 1)
             # 方向相反 不移动
             elif self.direction == "down": pass
             # 方向不向上 改变方向
@@ -31,7 +35,8 @@ class Tank(Object):
         elif direction == "down":
 
             # 方向已经向下 开始移动
-            if self.direction == "down": self.posy = min(game.height - 1, self.posy + 1)
+            if self.direction == "down" and (self.posx,self.posy+1) not in [(o.posx, o.posy) for o in obstacles] and (self.posx,self.posy+1)!=emeny_pos:
+                self.posy = min(game.height - 1, self.posy + 1)
             # 方向相反 不移动
             elif self.direction == "up": pass
             # 方向不向下 改变方向
@@ -40,7 +45,8 @@ class Tank(Object):
         elif direction == "left":
 
             # 方向已经向左 开始移动
-            if self.direction == "left": self.posx = max(0, self.posx - 1)
+            if self.direction == "left" and (self.posy,self.posx-1) not in [(o.posy, o.posx) for o in obstacles] and (self.posx-1,self.posy)!=emeny_pos: 
+                self.posx = max(0, self.posx - 1)
             # 方向相反 不移动
             elif self.direction == "right": pass
             # 方向不向左 改变方向
@@ -49,21 +55,22 @@ class Tank(Object):
         elif direction == "right":
 
             # 方向已经向左 开始移动
-            if self.direction == "right": self.posx = min(game.width - 1, self.posx + 1)
+            if self.direction == "right" and (self.posy,self.posx+1) not in [(o.posy, o.posx) for o in obstacles]and (self.posx+1,self.posy)!=emeny_pos: 
+                self.posx = min(game.width - 1, self.posx + 1)
             # 方向相反 不移动
             elif self.direction == "left": pass
             # 方向不向左 改变方向
             else: self.direction = "right"
 
     # 返回表示当前坦克外形的字符
-    def Tank_Directions(self):
-        t = '↑'
+    def Tank_Directions(self,shape):
+        t = total_shape[shape][0]
         if self.direction == "down":
-            t = '↓'
+            t = total_shape[shape][1]
         elif self.direction == "left":
-            t = '←'
+            t = total_shape[shape][2]
         elif self.direction == "right":
-            t = '→'
+            t = total_shape[shape][3]
         return t
 
     def is_hit(self):
@@ -132,8 +139,8 @@ class TankGame:
     def draw_map(self):
         self.clear_screen()
         game_map = [["." for _ in range(self.width)] for _ in range(self.height)]
-        game_map[self.tank1.posy][self.tank1.posx] = self.tank1.Tank_Directions()  # Tank 1
-        game_map[self.tank2.posy][self.tank2.posx] = self.tank2.Tank_Directions()  # Tank 2
+        game_map[self.tank1.posy][self.tank1.posx] = self.tank1.Tank_Directions(shape_tank1)  # Tank 1
+        game_map[self.tank2.posy][self.tank2.posx] = self.tank2.Tank_Directions(shape_tank2)  # Tank 2
         for obstacle in self.obstacles:
             game_map[obstacle.posy][obstacle.posx] = "#"  # Obstacle
         if self.bullet1:
@@ -154,7 +161,7 @@ class TankGame:
                     self.bullet1 = None  # 子弹超出边界
                 elif (self.bullet1.posx, self.bullet1.posy) == (self.tank2.posx, self.tank2.posy):
                     self.tank2.health -= 1
-                    print(f"Player 2 hit! Health: {self.tank2.health}")
+                    # print(f"Player 2 hit! Health: {self.tank2.health}")
                     self.bullet1 = None  # 子弹消失
 
             if self.bullet2:
@@ -163,7 +170,7 @@ class TankGame:
                     self.bullet2 = None  # 子弹超出边界
                 elif (self.bullet2.posx, self.bullet2.posy) == (self.tank1.posx, self.tank1.posy):
                     self.tank1.health -= 1
-                    print(f"Player 1 hit! Health: {self.tank1.health}")
+                    # print(f"Player 1 hit! Health: {self.tank1.health}")
                     self.bullet2 = None  # 子弹消失
 
             if self.tank1.is_hit() or self.tank2.is_hit():
@@ -173,32 +180,32 @@ class TankGame:
     def handle_input(self):
         while self.running:
             # 玩家1控制
-            if keyboard.is_pressed('w') and (self.tank1.posx,self.tank1.posy-1) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank1.posx, self.tank1.posy-1) != (self.tank2.posx, self.tank2.posy):
-                self.tank1.move("up")
-            elif keyboard.is_pressed('s')and (self.tank1.posx,self.tank1.posy+1) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank1.posx, self.tank1.posy+1) != (self.tank2.posx, self.tank2.posy):
-                self.tank1.move("down")
-            elif keyboard.is_pressed('a') and (self.tank1.posx-1,self.tank1.posy) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank1.posx-1, self.tank1.posy) != (self.tank2.posx, self.tank2.posy):
-                self.tank1.move("left")
-            elif keyboard.is_pressed('d') and (self.tank1.posx+1,self.tank1.posy) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank1.posx+1, self.tank1.posy) != (self.tank2.posx, self.tank2.posy):
-                self.tank1.move("right")
+            if keyboard.is_pressed('w') :
+                self.tank1.move("up",self.obstacles,(self.tank2.posx,self.tank2.posy))
+            elif keyboard.is_pressed('s'):
+                self.tank1.move("down",self.obstacles,(self.tank2.posx,self.tank2.posy))
+            elif keyboard.is_pressed('a') :
+                self.tank1.move("left",self.obstacles,(self.tank2.posx,self.tank2.posy))
+            elif keyboard.is_pressed('d') :
+                self.tank1.move("right",self.obstacles,(self.tank2.posx,self.tank2.posy))
             elif keyboard.is_pressed('o'):
                 if not self.bullet1:  # 玩家1发射子弹
                     self.bullet1 = Bullet(self.tank1.posx, self.tank1.posy, self.tank1.direction)
-                    print(f"Player 1 shot from ({self.bullet1.posx}, {self.bullet1.posy})!")
+                    # print(f"Player 1 shot from ({self.bullet1.posx}, {self.bullet1.posy})!")
 
             # 玩家2控制
-            if keyboard.is_pressed('5') and (self.tank2.posx,self.tank2.posy-1) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank2.posx, self.tank2.posy-1) != (self.tank1.posx, self.tank1.posy):
-                self.tank2.move("up")
-            elif keyboard.is_pressed('2') and (self.tank2.posx,self.tank2.posy+1) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank2.posx, self.tank2.posy+1) != (self.tank1.posx, self.tank1.posy):
-                self.tank2.move("down")
-            elif keyboard.is_pressed('1') and (self.tank2.posx-1,self.tank2.posy) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank2.posx-1, self.tank2.posy) != (self.tank1.posx, self.tank1.posy):
-                self.tank2.move("left")
-            elif keyboard.is_pressed('3') and (self.tank2.posx+1,self.tank2.posy) not in [(o.posx, o.posy) for o in self.obstacles] and (self.tank2.posx+1, self.tank2.posy) != (self.tank1.posx, self.tank1.posy):
-                self.tank2.move("right")
+            if keyboard.is_pressed('5') :
+                self.tank2.move("up",self.obstacles,(self.tank1.posx,self.tank1.posy))
+            elif keyboard.is_pressed('2'):
+                self.tank2.move("down",self.obstacles,(self.tank1.posx,self.tank1.posy))
+            elif keyboard.is_pressed('1') :
+                self.tank2.move("left",self.obstacles,(self.tank1.posx,self.tank1.posy))
+            elif keyboard.is_pressed('3'):
+                self.tank2.move("right",self.obstacles,(self.tank1.posx,self.tank1.posy))
             elif keyboard.is_pressed('enter'):
                 if not self.bullet2:  # 玩家2发射子弹
                     self.bullet2 = Bullet(self.tank2.posx, self.tank2.posy, self.tank2.direction)
-                    print(f"Player 2 shot from ({self.bullet2.posx}, {self.bullet2.posy})!")
+                    # print(f"Player 2 shot from ({self.bullet2.posx}, {self.bullet2.posy})!")
 
             time.sleep(0.1)  # 适当降低检查频率
 
@@ -212,18 +219,21 @@ class TankGame:
 
         # 游戏结束，输出胜利者
         if self.tank1.is_hit():
-            print("Player 2 wins!")
+            print("游戏结束,玩家2获胜！")
         elif self.tank2.is_hit():
-            print("Player 1 wins!")
+            print("游戏»结束,玩家1获胜！")
 
 # 运行游戏
 if __name__ == "__main__":
+
     print("欢迎来到坦克大战！\n");
     print("玩家1使用 WASD 控制，玩家2使用 5213 控制。\n");
     print("玩家1按下O发射子弹, 玩家2按下Enter发射子弹。\n");
     width=int(input("请输入地图宽度：")) 
     height=int(input("请输入地图高度："))
     num_obstacles=int(input("请输入障碍物数量："))
+    shape_tank1=int(input("请选择玩家一的坦克形状:\n1.↑↓←→\n2.㊤㊦㊧㊨\n3.▲▼◄►\n"))
+    shape_tank2=int(input("请选择玩家二的坦克形状:\n1.↑↓←→\n2.㊤㊦㊧㊨\n3.▲▼◄►\n"))
     print("游戏开始！\n");
     game = TankGame(width, height, num_obstacles)
     input_thread = threading.Thread(target=game.handle_input)
