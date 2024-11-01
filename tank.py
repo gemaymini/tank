@@ -1,4 +1,4 @@
-import random
+import random 
 import time
 import threading
 import keyboard  # 确保安装 keyboard 库
@@ -41,6 +41,16 @@ class Bullet(Object):
     def __init__(self, posx, posy, direction):
         super().__init__(posx, posy)
         self.direction = direction  # 子弹方向
+        if direction == "up":
+            self.posy -= 1
+        elif direction == "down":
+            self.posy += 1
+        elif direction == "left":
+            self.posx -= 1
+        elif direction == "right":
+            self.posx += 1
+        
+
 
     def move(self):
         if self.direction == "up":
@@ -64,12 +74,13 @@ class TankGame:
     def __init__(self, width, height, num_obstacles):
         self.width = width
         self.height = height
-        self.tank1 = Tank(width // 4, height - 3)  # 玩家1
-        self.tank2 = Tank(3 * width // 4, height - 3)  # 玩家2
+        self.tank1 = Tank(width // 4, height - 2)  # 玩家1
+        self.tank2 = Tank(3 * width // 4, height - 2)  # 玩家2
         self.obstacles = self.generate_obstacles(num_obstacles)
         self.bullet1 = None
         self.bullet2 = None
         self.running = True
+        self.obstacles=self.generate_obstacles(num_obstacles)
 
     def generate_obstacles(self, num_obstacles):
         obstacles = []
@@ -84,42 +95,17 @@ class TankGame:
     def clear_screen(self):
         os.system("cls" if os.name == "nt" else "clear")
 
-    def draw_tank(self, tank):
-        if tank.direction == "up":
-            return " ||\n=[H]\n ||"
-        elif tank.direction == "down":
-            return " ||\n=[H]\n ||"
-        elif tank.direction == "left":
-            return "    [H]\n==||"
-        elif tank.direction == "right":
-            return "    [H]\n||=="
-
     def draw_map(self):
         self.clear_screen()
         game_map = [["." for _ in range(self.width)] for _ in range(self.height)]
-        
-        # 在地图中放置坦克的形状
-        tank1_shape = self.draw_tank(self.tank1).splitlines()
-        tank2_shape = self.draw_tank(self.tank2).splitlines()
-        
-        for i in range(len(tank1_shape)):
-            if 0 <= self.tank1.posy + i < self.height:
-                for j in range(len(tank1_shape[i])):
-                    if 0 <= self.tank1.posx + j < self.width:
-                        game_map[self.tank1.posy + i][self.tank1.posx + j] = tank1_shape[i][j]
-        
-        for i in range(len(tank2_shape)):
-            if 0 <= self.tank2.posy + i < self.height:
-                for j in range(len(tank2_shape[i])):
-                    if 0 <= self.tank2.posx + j < self.width:
-                        game_map[self.tank2.posy + i][self.tank2.posx + j] = tank2_shape[i][j]
-
+        game_map[self.tank1.posy][self.tank1.posx] = "1"  # Tank 1
+        game_map[self.tank2.posy][self.tank2.posx] = "2"  # Tank 2
         for obstacle in self.obstacles:
             game_map[obstacle.posy][obstacle.posx] = "#"  # Obstacle
         if self.bullet1:
             game_map[self.bullet1.posy][self.bullet1.posx] = "*"  # Bullet 1
         if self.bullet2:
-            game_map[self.bullet2.posy][self.bullet2.posx] = "!"  # Bullet 2
+            game_map[self.bullet2.posy][self.bullet2.posx] = "o"  # Bullet 2
 
         print(f"Player 1 Health: {self.tank1.health} | Player 2 Health: {self.tank2.health}")
         for row in game_map:
@@ -130,7 +116,7 @@ class TankGame:
         while self.running:
             if self.bullet1:
                 self.bullet1.move()
-                if self.bullet1.posy < 0 or self.bullet1.posy >= self.height or self.bullet1.posx < 0 or self.bullet1.posx >= self.width:
+                if self.bullet1.posy < 0 or self.bullet1.posy >= self.height or self.bullet1.posx < 0 or self.bullet1.posx >= self.width or (self.bullet1.posx, self.bullet1.posy) in [(o.posx, o.posy) for o in self.obstacles]:
                     self.bullet1 = None  # 子弹超出边界
                 elif (self.bullet1.posx, self.bullet1.posy) == (self.tank2.posx, self.tank2.posy):
                     self.tank2.health -= 1
@@ -139,7 +125,7 @@ class TankGame:
 
             if self.bullet2:
                 self.bullet2.move()
-                if self.bullet2.posy < 0 or self.bullet2.posy >= self.height or self.bullet2.posx < 0 or self.bullet2.posx >= self.width:
+                if self.bullet2.posy < 0 or self.bullet2.posy >= self.height or self.bullet2.posx < 0 or self.bullet2.posx >= self.width or (self.bullet2.posx, self.bullet2.posy) in [(o.posx, o.posy) for o in self.obstacles]: 
                     self.bullet2 = None  # 子弹超出边界
                 elif (self.bullet2.posx, self.bullet2.posy) == (self.tank1.posx, self.tank1.posy):
                     self.tank1.health -= 1
@@ -148,7 +134,7 @@ class TankGame:
 
             if self.tank1.is_hit() or self.tank2.is_hit():
                 self.running = False  # 停止游戏
-            time.sleep(0.3)
+            time.sleep(0.05)
 
     def handle_input(self):
         while self.running:
@@ -180,7 +166,7 @@ class TankGame:
                     self.bullet2 = Bullet(self.tank2.posx, self.tank2.posy, self.tank2.direction)
                     print(f"Player 2 shot from ({self.bullet2.posx}, {self.bullet2.posy})!")
 
-            time.sleep(0.01)  # 适当降低检查频率
+            time.sleep(0.1)  # 适当降低检查频率
 
     def play(self):
         bullet_thread = threading.Thread(target=self.move_bullets)
@@ -188,7 +174,7 @@ class TankGame:
 
         while self.running:
             self.draw_map()
-            time.sleep(0.3)  # 刷新地图的频率
+            time.sleep(0.05)  # 刷新地图的频率
 
         # 游戏结束，输出胜利者
         if self.tank1.is_hit():
@@ -198,6 +184,7 @@ class TankGame:
 
 # 运行游戏
 if __name__ == "__main__":
+    
     game = TankGame(width=50, height=50, num_obstacles=50)
     input_thread = threading.Thread(target=game.handle_input)
     input_thread.start()
