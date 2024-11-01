@@ -1,7 +1,6 @@
 import random
 import time
 import threading
-
 import keyboard
 import os
 
@@ -9,13 +8,11 @@ total_shape = ["︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞", "⛈️"]
 shape_tank1 = -1
 shape_tank2 = -1
 
-
 # 基类Object
 class Object:
     def __init__(self, posx, posy):
         self.posx = posx
         self.posy = posy
-
 
 # 子类Tank
 class Tank(Object):
@@ -131,13 +128,11 @@ class Bullet(Object):
         elif self.direction == "right":
             self.posx += 1
 
-
 # 子类Obstacle
 class Obstacle(Object):
     def __init__(self, posx, posy):
         super().__init__(posx, posy)
 
-
 # 子类SpecialObstacle
 class SpecialObstacle(Obstacle):
     def __init__(self, posx, posy, health=2):
@@ -150,7 +145,6 @@ class SpecialObstacle(Obstacle):
             return True  # 返回True表示该障碍物已被摧毁
         return False
 
-
 # 子类SpecialObstacle
 class SpecialObstacle(Obstacle):
     def __init__(self, posx, posy, health=2):
@@ -162,7 +156,6 @@ class SpecialObstacle(Obstacle):
         if self.health <= 0:
             return True  # 返回True表示该障碍物已被摧毁
         return False
-
 
 # 子类PowerUp
 class PowerUp(Object):
@@ -170,7 +163,6 @@ class PowerUp(Object):
         super().__init__(posx, posy)
         self.type = type  # 道具类型: 'health', 'attack', 'defense', 'power_bullet'
         self.value = value  # 道具加成值
-
 
 # 游戏类
 class TankGame:
@@ -270,7 +262,6 @@ class TankGame:
                         game_map[self.bullet2.posy + y][self.bullet2.posx + x] = "💥"  # hit
                     else:
                         game_map[self.bullet2.posy][self.bullet2.posx] = self.bullet2.shape  # Bullet 2🧨
-
         print(
             f"Player 1 Health: {self.tank1.health} | Attack: {self.tank1.attack_power} | Defense: {self.tank1.defense_power}")
         print(
@@ -293,8 +284,6 @@ class TankGame:
                 if self.bullet1.posy < 0 or self.bullet1.posy >= self.height or self.bullet1.posx < 0 or self.bullet1.posx >= self.width:
                     self.bullet1 = None  # 子弹超出边界
                 elif (self.bullet1.posx, self.bullet1.posy) == (self.tank2.posx, self.tank2.posy):
-                    # 显示
-                    print("test")
                     hurt = self.tank1.attack_power - self.tank2.defense_power
                     if hurt > 0:
                         self.tank2.health -= hurt
@@ -364,10 +353,10 @@ class TankGame:
                 self.tank2.move("left", self.obstacles, (self.tank1.posx, self.tank1.posy))
             elif keyboard.is_pressed('3'):
                 self.tank2.move("right", self.obstacles, (self.tank1.posx, self.tank1.posy))
-
             elif keyboard.is_pressed('4'):
                 if not self.bullet2:  # 玩家2发射子弹
                     self.bullet2 = self.tank2.fire_bullet()
+
             # 检查是否拾取道具
             self.check_powerup_pickup(self.tank1)
             self.check_powerup_pickup(self.tank2)
@@ -395,7 +384,7 @@ if __name__ == "__main__":
 
     print("玩家1按下E发射子弹, 玩家2按下4发射子弹。\n")
 
-    print("普通障碍物#不可摧毁,特殊障碍物M可以被摧毁, 道具P可以被拾取\n")
+    print("普通障碍物🪨不可摧毁,特殊障碍物🛖可以被摧毁, 道具🧀可以被拾取(eat!)\n")
     width = int(input("请输入地图宽度："))
     height = int(input("请输入地图高度："))
     num_obstacles = int(input("请输入障碍物数量："))
