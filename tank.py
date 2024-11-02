@@ -6,7 +6,7 @@ import os
 
 #图标元组方便替换图标样式
 #              0-坦克1    1-坦克2    2-坦克3   3-玩家1子弹 4-玩家2子弹 5-空地 6-特殊障碍物 7-普通障碍物 8-道具 9-击中特效 10-道具子弹特效 11-道具坦克特效 12-道具样式
-total_shape = ("︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞","💣",     "🧨",     "🟫", "🛖",      "🪨",      "🧀", "💥",    "⚡⚡",          "⛈️",        "🌈")
+total_shape = ("︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞","💣",     "🧨",     "🟫", "🛖 ",      "🪨 ",      "🧀", "💥",    "⚡",          "⛈️ ",        "🌈")
 shape_tank1 = -1
 shape_tank2 = -1
 
@@ -276,7 +276,7 @@ class TankGame:
         for powerup in self.powerups[:]:  # 创建列表副本以便安全删除
             if (tank.posx, tank.posy) == (powerup.posx, powerup.posy):
                 tank.apply_powerup(powerup)
-                self.message.append(f"玩家{1 if tank == self.tank1 else 2}获得了{powerup.type}{'x' if powerup.type=='power_bullet' else '*'}{powerup.value}道具!")
+                self.message.append(f"玩家{1 if tank == self.tank1 else 2}获得了{powerup.type}{'x' if powerup.type=='power_bullet' else '+'}{powerup.value}道具!")
                 self.powerups.remove(powerup)  # 从游戏中移除道具
 
     def move_bullets(self):
@@ -290,8 +290,8 @@ class TankGame:
                     hurt = self.tank1.attack_power - self.tank2.defense_power
                     if hurt > 0:
                         self.tank2.health -= hurt
-                        self.message.append(f"玩家1击中了玩家2({self.tank2.posy, self.tank2.posx}),对其造成{hurt}点伤害!")
-                    else :self.message.append(f"玩家1击中玩家2({self.tank2.posy, self.tank2.posx}),但是没有穿透对方的防御!挠挠痒罢了......")
+                        self.message.append(f"玩家1击中了玩家2({self.tank2.posy, self.tank2.posx}),对其造成{hurt}点伤害,剩余生命值为{self.tank2.health}!")
+                    else :self.message.append(f"玩家1击中玩家2({self.tank2.posy, self.tank2.posx}),但是没有刮花对方的防御，剩余生命值为{self.tank2.health}，挠挠痒罢了......")
                     self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
                     self.bullet1 = None  # 子弹消失
                 else:
@@ -318,8 +318,8 @@ class TankGame:
                     hurt = self.tank2.attack_power - self.tank1.defense_power
                     if hurt > 0:
                         self.tank1.health -= hurt
-                        self.message.append(f"玩家2击中了玩家1({self.tank1.posy, self.tank1.posx}),对其造成{hurt}点伤害!")
-                    else :self.message.append(f"玩家1击中玩家2({self.tank2.posy, self.tank2.posx}),但是没有穿透对方的防御!挠挠痒罢了......")
+                        self.message.append(f"玩家2击中了玩家1({self.tank1.posy, self.tank1.posx}),对其造成{hurt}点伤害,剩余生命值为{self.tank1.health}!")
+                    else :self.message.append(f"玩家2击中玩家1({self.tank2.posy, self.tank2.posx}),但是没有刮花对方的防御，剩余生命值为{self.tank1.health}，挠挠痒罢了......")
                     self.bullet2_collision.append([self.bullet2.posx, self.bullet2.posy])
                     self.bullet2 = None  # 子弹消失
                 else:
@@ -407,10 +407,12 @@ if __name__ == "__main__":
     num_powerups = int(input("请输入道具数量："))
     while num_powerups > (width * height)*0.9:
         num_powerups = int(input("请输入道具数量："))
-    while shape_tank1 not in {1,2,3} or shape_tank2 not in {1,2,3}:
+    while shape_tank1 not in [0,1,2] or shape_tank2 not in [0,1,2]:
         shape_tank1 = int(input("请选择玩家一的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
+        print(shape_tank1)
+        
         shape_tank2 = int(input("请选择玩家二的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
-
+        print(shape_tank2)
     print("游戏开始！\n")
     game = TankGame(width, height, num_obstacles, num_powerups)
     input_thread = threading.Thread(target=game.handle_input)
