@@ -9,7 +9,7 @@ import os
 #              0-坦克1    1-坦克2    2-坦克3   3-玩家1子弹 4-玩家2子弹 5-空地 6-特殊障碍物 7-普通障碍物
 total_shape = ("︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞","💣",     "🧨",     "🟫", "🛖 ",      "🪨 ",
 #              8-道具 9-击中特效 10-进攻子弹特效 11-进攻坦克特效 12-进攻道具样式 13-防御子弹特效 14-防御坦克特效 15-防御道具样式
-               "🧀", "💥",    "⚡",          "⛈️ ",        "🌈",    "🫧",   "👻",   "🎃")
+               "🧀", "💥",    "⚡",          "⛈️ ",        "🌈",    "🫧 ",   "👻",   "🎃")
 
 shape_tank1 = -1
 shape_tank2 = -1
@@ -298,8 +298,11 @@ class TankGame:
         for powerup in self.powerups[:]:  # 创建列表副本以便安全删除
             if (tank.posx, tank.posy) == (powerup.posx, powerup.posy):
                 tank.apply_powerup(powerup)
-
-                self.message.append(f"玩家{1 if tank == self.tank1 else 2}获得了{powerup.type}{'x' if powerup.type=='power_bullet' else '+'}{powerup.value}道具!")
+                if(powerup.type=='power_bullet'): fh='x'
+                elif(powerup.type=='power_defense'): fh='='
+                else: fh='+'
+                m=f"玩家{1 if tank == self.tank1 else 2}获得了{powerup.type}{fh}{powerup.value}道具!"
+                self.message.append()
                 self.powerups.remove(powerup)  # 从游戏中移除道具
 
     def move_bullets(self):
