@@ -178,6 +178,7 @@ class TankGame:
         self.running = True
         self.bullet1_collision =[]
         self.bullet2_collision =[]
+        self.message = []
 
     def generate_obstacles(self, num_obstacles):
         obstacles = []
@@ -249,15 +250,18 @@ class TankGame:
             f"Player 1 Health: {self.tank1.health} | Attack: {self.tank1.attack_power} | Defense: {self.tank1.defense_power}")
         print(
             f"Player 2 Health: {self.tank2.health} | Attack: {self.tank2.attack_power} | Defense: {self.tank2.defense_power}")
-
+        
         for row in game_map:
             print(" ".join(row))
         print("\n" + "-" * (self.width * 3 - 1))
+        for mes in self.message[-6:-1]:
+            print(mes)
 
     def check_powerup_pickup(self, tank):
         for powerup in self.powerups[:]:  # 创建列表副本以便安全删除
             if (tank.posx, tank.posy) == (powerup.posx, powerup.posy):
                 tank.apply_powerup(powerup)
+                self.message.append(f"玩家{1 if tank == self.tank1 else 2}获得了{powerup.type}{'x' if powerup.type=='power_bullet' else '*'}{powerup.value}道具!")
                 self.powerups.remove(powerup)  # 从游戏中移除道具
 
     def move_bullets(self):
@@ -265,53 +269,58 @@ class TankGame:
             if self.bullet1:
                 self.bullet1.move()
                 if self.bullet1.posy < 0 or self.bullet1.posy >= self.height or self.bullet1.posx < 0 or self.bullet1.posx >= self.width:
+                    self.message.append(f"玩家1的子弹超出边界({self.bullet1.posy, self.bullet1.posx})!")
                     self.bullet1 = None  # 子弹超出边界
                 elif (self.bullet1.posx, self.bullet1.posy) == (self.tank2.posx, self.tank2.posy):
                     hurt = self.tank1.attack_power - self.tank2.defense_power
                     if hurt > 0:
                         self.tank2.health -= hurt
-                        self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
-                        self.bullet1 = None  # 子弹消失
+                        self.message.append(f"玩家1击中了玩家2({self.tank2.posy, self.tank2.posx}),对其造成{hurt}点伤害!")
+                    else :self.message.append(f"玩家1击中玩家2({self.tank2.posy, self.tank2.posx}),但是没有穿透对方的防御!挠挠痒罢了......")
+                    self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
+                    self.bullet1 = None  # 子弹消失
                 else:
                     for obstacle in self.obstacles:
                         if (self.bullet1.posx, self.bullet1.posy) == (obstacle.posx, obstacle.posy):
                             if isinstance(obstacle, SpecialObstacle):
                                 if obstacle.hit():
+                                    self.message.append( f"玩家1摧毁了特殊障碍物({obstacle.posy, obstacle.posx})!")
                                     self.obstacles.remove(obstacle)  # 移除已摧毁的特殊障碍物
-                                    # print("特殊障碍物被摧毁！")
-                                self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
-                                self.bullet1 = None  # 子弹消失
-                                break
+                                else: 
+                                    self.message.append(f"玩家1击中了特殊障碍物({obstacle.posy, obstacle.posx}),该障碍物剩余{obstacle.health}点生命值!")
                             else:
-                                self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
-                                self.bullet1 = None  # 子弹消失
-                                break
+                                self.message.append(f"玩家1击中了不可摧毁的障碍物({obstacle.posy, obstacle.posx})!")
+                            self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
+                            self.bullet1 = None  # 子弹消失
+                            break
 
             if self.bullet2:
                 self.bullet2.move()
                 if self.bullet2.posy < 0 or self.bullet2.posy >= self.height or self.bullet2.posx < 0 or self.bullet2.posx >= self.width:
                     self.bullet2 = None  # 子弹超出边界
+                    self.message.append(f"玩家2的子弹超出边界({self.bullet2.posy, self.bullet2.posx})!")
                 elif (self.bullet2.posx, self.bullet2.posy) == (self.tank1.posx, self.tank1.posy):
-
                     hurt = self.tank2.attack_power - self.tank1.defense_power
                     if hurt > 0:
                         self.tank1.health -= hurt
-                        self.bullet2_collision.append([self.bullet2.posx, self.bullet2.posy])
-                        self.bullet2 = None  # 子弹消失
+                        self.message.append(f"玩家2击中了玩家1({self.tank1.posy, self.tank1.posx}),对其造成{hurt}点伤害!")
+                    else :self.message.append(f"玩家1击中玩家2({self.tank2.posy, self.tank2.posx}),但是没有穿透对方的防御!挠挠痒罢了......")
+                    self.bullet2_collision.append([self.bullet2.posx, self.bullet2.posy])
+                    self.bullet2 = None  # 子弹消失
                 else:
                     for obstacle in self.obstacles:
                         if (self.bullet2.posx, self.bullet2.posy) == (obstacle.posx, obstacle.posy):
                             if isinstance(obstacle, SpecialObstacle):
                                 if obstacle.hit():
+                                    self.message.append( f"玩家2摧毁了特殊障碍物({obstacle.posy, obstacle.posx})!")
                                     self.obstacles.remove(obstacle)  # 移除已摧毁的特殊障碍物
-                                    # print("特殊障碍物被摧毁！")
-                                self.bullet2_collision.append([self.bullet2.posx, self.bullet2.posy])
-                                self.bullet2 = None  # 子弹消失
-                                break
+                                else:   
+                                    self.message.append(f"玩家2击中了特殊障碍物({obstacle.posy, obstacle.posx}),该障碍物剩余{obstacle.health}点生命值!")
                             else:
-                                self.bullet1_collision.append([self.bullet2.posx, self.bullet2.posy])
-                                self.bullet2 = None  # 子弹消失
-                                break
+                                self.message.append(f"玩家2击中了不可摧毁的障碍物({obstacle.posy, obstacle.posx})!")
+                            self.bullet1_collision.append([self.bullet2.posx, self.bullet2.posy])
+                            self.bullet2 = None  # 子弹消失
+                            break
 
             if self.tank1.is_hit() or self.tank2.is_hit():
                 self.running = False  # 停止游戏
@@ -360,10 +369,12 @@ class TankGame:
 
         # 游戏结束，输出胜利者
         if self.tank1.is_hit():
-            print("游戏结束, 玩家2获胜！")
+            self.message.append("游戏结束, 玩家2获胜!")
         elif self.tank2.is_hit():
-            print("游戏结束, 玩家1获胜！")
-
+            self.message.append("游戏结束, 玩家1获胜!")
+        self.clear_screen()
+        for m in self.message:
+            print(m)
 
 # 运行游戏
 if __name__ == "__main__":
