@@ -4,15 +4,19 @@ import threading
 import keyboard
 import os
 
-total_shape = ["︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞", "⛈️ "]
+#图标元组方便替换图标样式
+#              0-坦克1    1-坦克2    2-坦克3   3-玩家1子弹 4-玩家2子弹 5-空地 6-特殊障碍物 7-普通障碍物 8-道具 9-击中特效 10-道具子弹特效 11-道具坦克特效 12-道具样式
+total_shape = ("︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞","💣",     "🧨",     "🟫", "🛖",      "🪨",      "🧀", "💥",    "⚡⚡",          "⛈️",        "🌈")
 shape_tank1 = -1
 shape_tank2 = -1
+
 
 # 基类Object
 class Object:
     def __init__(self, posx, posy):
         self.posx = posx
         self.posy = posy
+
 
 # 子类Tank
 class Tank(Object):
@@ -30,7 +34,7 @@ class Tank(Object):
     def move(self, direction, obstacles, enemy_pos):
         if direction == "up":
             if self.direction == "up" and (self.posx, self.posy - 1) not in [(o.posx, o.posy) for o in obstacles] and (
-            self.posx, self.posy - 1) != enemy_pos:
+                    self.posx, self.posy - 1) != enemy_pos:
                 self.posy = max(0, self.posy - 1)
             elif self.direction == "down":
                 pass
@@ -40,7 +44,7 @@ class Tank(Object):
         elif direction == "down":
             if self.direction == "down" and (self.posx, self.posy + 1) not in [(o.posx, o.posy) for o in
                                                                                obstacles] and (
-            self.posx, self.posy + 1) != enemy_pos:
+                    self.posx, self.posy + 1) != enemy_pos:
                 self.posy = min(game.height - 1, self.posy + 1)
             elif self.direction == "up":
                 pass
@@ -50,7 +54,7 @@ class Tank(Object):
         elif direction == "left":
             if self.direction == "left" and (self.posy, self.posx - 1) not in [(o.posy, o.posx) for o in
                                                                                obstacles] and (
-            self.posx - 1, self.posy) != enemy_pos:
+                    self.posx - 1, self.posy) != enemy_pos:
                 self.posx = max(0, self.posx - 1)
             elif self.direction == "right":
                 pass
@@ -60,7 +64,7 @@ class Tank(Object):
         elif direction == "right":
             if self.direction == "right" and (self.posy, self.posx + 1) not in [(o.posy, o.posx) for o in
                                                                                 obstacles] and (
-            self.posx + 1, self.posy) != enemy_pos:
+                    self.posx + 1, self.posy) != enemy_pos:
                 self.posx = min(game.width - 1, self.posx + 1)
             elif self.direction == "left":
                 pass
@@ -82,7 +86,7 @@ class Tank(Object):
             self.attack_power *= 2  # 翻倍攻击力
             self.powerup_active = True
             # 修改发射子弹的形状
-            self.bullet_shape = "⚡"  # 使用新的形状
+            self.bullet_shape = total_shape[10]  # 使用新的形状
             self.powerup_timer = threading.Timer(5.0, self.deactivate_power_bullet)  # 5秒后恢复
             self.powerup_timer.start()
 
@@ -104,7 +108,7 @@ class Tank(Object):
             t = total_shape[shape][3]
 
         if self.powerup_active == True:
-            t = total_shape[3]
+            t = total_shape[11]
         return t
 
     def is_hit(self):
@@ -128,22 +132,12 @@ class Bullet(Object):
         elif self.direction == "right":
             self.posx += 1
 
+
 # 子类Obstacle
 class Obstacle(Object):
     def __init__(self, posx, posy):
         super().__init__(posx, posy)
 
-# 子类SpecialObstacle
-class SpecialObstacle(Obstacle):
-    def __init__(self, posx, posy, health=2):
-        super().__init__(posx, posy)
-        self.health = health  # 初始生命值
-
-    def hit(self):
-        self.health -= 1
-        if self.health <= 0:
-            return True  # 返回True表示该障碍物已被摧毁
-        return False
 
 # 子类SpecialObstacle
 class SpecialObstacle(Obstacle):
@@ -156,6 +150,20 @@ class SpecialObstacle(Obstacle):
         if self.health <= 0:
             return True  # 返回True表示该障碍物已被摧毁
         return False
+
+
+# 子类SpecialObstacle
+class SpecialObstacle(Obstacle):
+    def __init__(self, posx, posy, health=2):
+        super().__init__(posx, posy)
+        self.health = health  # 初始生命值
+
+    def hit(self):
+        self.health -= 1
+        if self.health <= 0:
+            return True  # 返回True表示该障碍物已被摧毁
+        return False
+
 
 # 子类PowerUp
 class PowerUp(Object):
@@ -164,20 +172,21 @@ class PowerUp(Object):
         self.type = type  # 道具类型: 'health', 'attack', 'defense', 'power_bullet'
         self.value = value  # 道具加成值
 
+
 # 游戏类
 class TankGame:
     def __init__(self, width, height, num_obstacles, num_powerups):
         self.width = width
         self.height = height
-        self.tank1 = Tank(random.randint(0, width - 1), random.randint(0, height - 1), "💣")  # 玩家1
-        self.tank2 = Tank(random.randint(0, width - 1), random.randint(0, height - 1), "🧨")  # 玩家2
+        self.tank1 = Tank(random.randint(0, width - 1), random.randint(0, height - 1), total_shape[3])  # 玩家1
+        self.tank2 = Tank(random.randint(0, width - 1), random.randint(0, height - 1), total_shape[4])  # 玩家2
         self.obstacles = self.generate_obstacles(num_obstacles)
         self.powerups = self.generate_powerups(num_powerups)
         self.bullet1 = None
         self.bullet2 = None
         self.running = True
-        self.bullet1_collision =[]
-        self.bullet2_collision =[]
+        self.bullet1_collision = []
+        self.bullet2_collision = []
 
     def generate_obstacles(self, num_obstacles):
         obstacles = []
@@ -189,7 +198,7 @@ class TankGame:
             else:
                 obstacle = Obstacle(posx, posy)
             if (posx, posy) != (self.tank1.posx, self.tank1.posy) and (posx, posy) != (
-            self.tank2.posx, self.tank2.posy) and (posx, posy) not in [(o.posx, o.posy) for o in obstacles]:
+                    self.tank2.posx, self.tank2.posy) and (posx, posy) not in [(o.posx, o.posy) for o in obstacles]:
                 obstacles.append(obstacle)
         return obstacles
 
@@ -218,33 +227,39 @@ class TankGame:
         self.clear_screen()
 
         # 画出空地和坦克
-        game_map = [["🟫" for _ in range(self.width)] for _ in range(self.height)]
+        game_map = [[total_shape[5] for _ in range(self.width)] for _ in range(self.height)]
         game_map[self.tank1.posy][self.tank1.posx] = self.tank1.Tank_Directions(shape_tank1)  # Tank 1
         game_map[self.tank2.posy][self.tank2.posx] = self.tank2.Tank_Directions(shape_tank2)  # Tank 2
         # 画出障碍物
         for obstacle in self.obstacles:
             if isinstance(obstacle, SpecialObstacle):
-                game_map[obstacle.posy][obstacle.posx] = "🛖 "  # 特殊障碍物
+                game_map[obstacle.posy][obstacle.posx] = total_shape[6]  # 特殊障碍物
             else:
-                game_map[obstacle.posy][obstacle.posx] = "🪨 "  # 普通障碍物
+                game_map[obstacle.posy][obstacle.posx] = total_shape[7]  # 普通障碍物
         # 画出道具
         for powerup in self.powerups:
-            game_map[powerup.posy][powerup.posx] = "🧀"  # 道具
+            if powerup.type == 'power_bullet':
+                game_map[powerup.posy][powerup.posx] = total_shape[12]  # 新道具
+            else:
+                game_map[powerup.posy][powerup.posx] = total_shape[8]  # 道具
         # 画出子弹
         if self.bullet1:
-            game_map[self.bullet1.posy][self.bullet1.posx] = self.bullet1.shape  # Bullet 1💣
-        
-        if self.bullet1_collision!= []:
-            game_map[self.bullet1_collision[0][1]][self.bullet1_collision[0][0]] = "💥"  # hit
+            # 与自身位置不重合时画出子弹
+            if (self.bullet1.posy != self.tank1.posy) or (self.bullet1.posx != self.tank1.posx):
+                game_map[self.bullet1.posy][self.bullet1.posx] = self.bullet1.shape  # Bullet 1💣
+
+        # 发生碰撞
+        if self.bullet1_collision != []:
+            game_map[self.bullet1_collision[0][1]][self.bullet1_collision[0][0]] = total_shape[9]  # hit
             self.bullet1_collision = []
 
         if self.bullet2:
-                game_map[self.bullet2.posy][self.bullet2.posx] = self.bullet2.shape  # Bullet 2🧨
+            game_map[self.bullet2.posy][self.bullet2.posx] = self.bullet2.shape  # Bullet 2🧨
 
         if self.bullet2_collision != []:
-            game_map[self.bullet2_collision[0][1]][self.bullet2_collision[0][0]] = "💥"  # hit
+            game_map[self.bullet2_collision[0][1]][self.bullet2_collision[0][0]] = total_shape[9]  # hit
             self.bullet2_collision = []
-                        
+
         print(
             f"Player 1 Health: {self.tank1.health} | Attack: {self.tank1.attack_power} | Defense: {self.tank1.defense_power}")
         print(
@@ -372,14 +387,18 @@ if __name__ == "__main__":
 
     print("玩家1按下E发射子弹, 玩家2按下4发射子弹。\n")
 
-    print("普通障碍物🪨不可摧毁,特殊障碍物🛖可以被摧毁, 道具🧀可以被拾取(eat!)\n")
+    print(f"普通障碍物{total_shape[7]}不可摧毁,特殊障碍物{total_shape[6]}可以被摧毁, 道具{total_shape[8]}可以被拾取(eat!)\n")
     width = int(input("请输入地图宽度："))
     height = int(input("请输入地图高度："))
     num_obstacles = int(input("请输入障碍物数量："))
+    while num_obstacles > (width * height)*0.9:
+        num_obstacles = int(input("请重新输入障碍物数量："))
     num_powerups = int(input("请输入道具数量："))
-
-    shape_tank1 = int(input("请选择玩家一的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
-    shape_tank2 = int(input("请选择玩家二的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
+    while num_powerups > (width * height)*0.9:
+        num_powerups = int(input("请输入道具数量："))
+    while shape_tank1 not in {1,2,3} or shape_tank2 not in {1,2,3}:
+        shape_tank1 = int(input("请选择玩家一的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
+        shape_tank2 = int(input("请选择玩家二的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
 
     print("游戏开始！\n")
     game = TankGame(width, height, num_obstacles, num_powerups)
