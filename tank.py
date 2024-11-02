@@ -12,13 +12,11 @@ total_shape = ("︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞","💣",     "🧨"
 shape_tank1 = -1
 shape_tank2 = -1
 
-
 # 基类Object
 class Object:
     def __init__(self, posx, posy):
         self.posx = posx
         self.posy = posy
-
 
 # 子类Tank
 class Tank(Object):
@@ -33,8 +31,8 @@ class Tank(Object):
         self.powerup_timer = None  # 定时器线程
         self.bullet_shape = bullet_shape  # 初始化子弹形状
         self.tempbullet_shape = bullet_shape  # 备份子弹形状
-        self.temp_attack = self.attack_power
-        self.temp_defense = self.defense_power
+        self.temp_attack = self.attack_power # 备份攻击
+        self.temp_defense = self.defense_power # 备份防御
 
     def move(self, direction, obstacles, enemy_pos):
         if direction == "up":
@@ -90,23 +88,22 @@ class Tank(Object):
 
     def activate_power_second(self):
         if not self.powerup_active_second:
-            self.temp_defense = self.defense_power
-            self.temp_attack = self.attack_power
+            self.temp_defense = self.defense_power # 备份当前的防御力
+            self.temp_attack = self.attack_power # 备份当前攻击力
             self.defense_power = 999  # 无敌了
-            self.attack_power = 1
+            self.attack_power = 1 # 降低攻击
             self.powerup_active_second = True
             # 修改发射子弹的形状
-            self.bullet_shape = total_shape[13]  # 使用新的形状
+            self.bullet_shape = total_shape[13]  # 使用新子弹的形状
             self.powerup_timer_second = threading.Timer(10.0, self.deactivate_power_second)  # 10秒后恢复
             self.powerup_timer_second.start()
 
     def deactivate_power_second(self):
-        print("here")
-        self.defense_power = self.temp_defense
+        self.defense_power = self.temp_defense # 恢复防御力
         self.attack_power = self.temp_attack  # 恢复攻击力
 
         self.powerup_active_second = False
-        self.bullet_shape = self.tempbullet_shape  # 恢复原来的形状
+        self.bullet_shape = self.tempbullet_shape  # 恢复子弹的形状
 
 
     def activate_power_bullet(self):
@@ -182,24 +179,11 @@ class SpecialObstacle(Obstacle):
         return False
 
 
-# 子类SpecialObstacle
-class SpecialObstacle(Obstacle):
-    def __init__(self, posx, posy, health=2):
-        super().__init__(posx, posy)
-        self.health = health  # 初始生命值
-
-    def hit(self):
-        self.health -= 1
-        if self.health <= 0:
-            return True  # 返回True表示该障碍物已被摧毁
-        return False
-
-
 # 子类PowerUp
 class PowerUp(Object):
     def __init__(self, posx, posy, type, value):
         super().__init__(posx, posy)
-        self.type = type  # 道具类型: 'health', 'attack', 'defense', 'power_bullet'
+        self.type = type  # 道具类型: 'health', 'attack', 'defense', 'power_bullet' '5_second'
         self.value = value  # 道具加成值
 
 
@@ -242,7 +226,7 @@ class TankGame:
             posy = random.randint(0, self.height - 1)
             if (posx, posy) not in occupied_positions:  # 确保道具位置不与坦克或障碍物重叠
 
-                type = random.choice(["health", "attack", "defense", "power_bullet", "5_second"])  # 新道具
+                type = random.choice(["health", "attack", "defense", "power_bullet", "5_second"])  # 道具类型
 
                 value = random.randint(1, 2)  # 加成值
                 powerup = PowerUp(posx, posy, type, value)
@@ -269,9 +253,9 @@ class TankGame:
         # 画出道具
         for powerup in self.powerups:
             if powerup.type == 'power_bullet':
-                game_map[powerup.posy][powerup.posx] = total_shape[12]  # 新道具
+                game_map[powerup.posy][powerup.posx] = total_shape[12]  # 进攻道具
             elif powerup.type == '5_second':
-                game_map[powerup.posy][powerup.posx] = total_shape[15]
+                game_map[powerup.posy][powerup.posx] = total_shape[15] # 防御道具
             else:
                 game_map[powerup.posy][powerup.posx] = total_shape[8]  # 道具
         # 画出子弹
