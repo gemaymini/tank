@@ -3,43 +3,51 @@
 class Object {
     +int posx
     +int posy
+    +__init__(posx: int, posy: int)
 }
 
 class Tank {
     +int health
     +int attack_power
     +int defense_power
-    +String direction
-    +boolean powerup_active
-    +Thread powerup_timer
-    +String bullet_shape
-    +String tempbullet_shape
-    +move(String direction, List obstacles, Tuple enemy_pos)
-    +apply_powerup(PowerUp powerup)
+    +str direction
+    +bool powerup_active_bullet
+    +bool powerup_active_second
+    +Timer powerup_timer
+    +str bullet_shape
+    +str tempbullet_shape
+    +int temp_attack
+    +int temp_defense
+    +move(direction: str, obstacles: List<Obstacle>, enemy_pos: Tuple[int, int])
+    +apply_powerup(powerup: PowerUp)
+    +activate_power_second()
+    +deactivate_power_second()
     +activate_power_bullet()
     +deactivate_power_bullet()
     +fire_bullet() : Bullet
-    +Tank_Directions(int shape) : String
-    +is_hit() : boolean
+    +Tank_Directions(shape: int) : str
+    +is_hit() : bool
 }
 
 class Bullet {
-    +String direction
-    +String shape
+    +str direction
+    +str shape
     +move()
 }
 
 class Obstacle {
+    +__init__(posx: int, posy: int)
 }
 
 class SpecialObstacle {
     +int health
-    +hit() : boolean
+    +hit() : bool
 }
 
 class PowerUp {
-    +String type
+    +str type
     +int value
+    +__init__(posx: int, posy: int, type: str, value: int)
 }
 
 class TankGame {
@@ -47,34 +55,31 @@ class TankGame {
     +int height
     +Tank tank1
     +Tank tank2
-    +List obstacles
-    +List powerups
+    +List<Obstacle> obstacles
+    +List<PowerUp> powerups
     +Bullet bullet1
     +Bullet bullet2
-    +boolean running
-    +generate_obstacles(int num_obstacles) : List
-    +generate_powerups(int num_powerups) : List
+    +bool running
+    +List<Tuple<int, int>> bullet1_collision
+    +List<Tuple<int, int>> bullet2_collision
+    +generate_obstacles(num_obstacles: int) : List<Obstacle>
+    +generate_powerups(num_powerups: int) : List<PowerUp>
     +clear_screen()
     +draw_map()
-    +check_powerup_pickup(Tank tank)
+    +check_powerup_pickup(tank: Tank)
     +move_bullets()
     +handle_input()
     +play()
 }
 
-
-
-
-TankGame --> Tank
-TankGame --> PowerUp
-TankGame --> Obstacle
-TankGame --> Bullet
-
 Object <|-- Tank
 Object <|-- Bullet
 Object <|-- Obstacle
-Object <|-- PowerUp
 Obstacle <|-- SpecialObstacle
-
+Object <|-- PowerUp
+TankGame *-- Tank
+TankGame *-- Obstacle
+TankGame *-- PowerUp
+TankGame *-- Bullet
 
 @enduml
