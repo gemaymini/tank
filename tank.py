@@ -4,7 +4,7 @@ import threading
 import keyboard
 import os
 
-total_shape = ["︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞", "⛈️"]
+total_shape = ["︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞", "⛈️ "]
 shape_tank1 = -1
 shape_tank2 = -1
 
@@ -176,6 +176,8 @@ class TankGame:
         self.bullet1 = None
         self.bullet2 = None
         self.running = True
+        self.bullet1_collision =[]
+        self.bullet2_collision =[]
 
     def generate_obstacles(self, num_obstacles):
         obstacles = []
@@ -222,46 +224,27 @@ class TankGame:
         # 画出障碍物
         for obstacle in self.obstacles:
             if isinstance(obstacle, SpecialObstacle):
-                game_map[obstacle.posy][obstacle.posx] = "🛖"  # 特殊障碍物
+                game_map[obstacle.posy][obstacle.posx] = "🛖 "  # 特殊障碍物
             else:
-                game_map[obstacle.posy][obstacle.posx] = "🪨"  # 普通障碍物
+                game_map[obstacle.posy][obstacle.posx] = "🪨 "  # 普通障碍物
         # 画出道具
         for powerup in self.powerups:
             game_map[powerup.posy][powerup.posx] = "🧀"  # 道具
         # 画出子弹
         if self.bullet1:
-            if self.bullet1.posy == self.tank1.posy and self.bullet1.posx == self.tank1.posx:
-               pass
-            else:
-                x = 0
-                y = 0
-                if self.bullet1.direction == "up": y = -1
-                elif self.bullet1.direction == "down": y = 1
-                elif self.bullet1.direction == "left": x = -1
-                elif self.bullet1.direction == "right": x = 1
-
-                if self.bullet1.posy >= 0 or self.bullet1.posy < self.height or self.bullet1.posx >= 0 or self.bullet1.posx < self.width:
-                    if game_map[self.bullet1.posy + y][self.bullet1.posx + x] not in {"🟫","🧀"} :
-                        game_map[self.bullet1.posy + y][self.bullet1.posx + x] = "💥"  # hit
-                    else:
-                        game_map[self.bullet1.posy][self.bullet1.posx] = self.bullet1.shape  # Bullet 1💣
+            game_map[self.bullet1.posy][self.bullet1.posx] = self.bullet1.shape  # Bullet 1💣
+        
+        if self.bullet1_collision!= []:
+            game_map[self.bullet1_collision[0][1]][self.bullet1_collision[0][0]] = "💥"  # hit
+            self.bullet1_collision = []
 
         if self.bullet2:
-            if self.bullet2.posy == self.tank2.posy and self.bullet2.posx == self.tank2.posx:
-               pass
-            else:
-                x = 0
-                y = 0
-                if self.bullet2.direction == "up": y = -1
-                elif self.bullet2.direction == "down": y = 1
-                elif self.bullet2.direction == "left": x = -1
-                elif self.bullet2.direction == "right": x = 1
+                game_map[self.bullet2.posy][self.bullet2.posx] = self.bullet2.shape  # Bullet 2🧨
 
-                if self.bullet2.posy >= 0 or self.bullet2.posy < self.height or self.bullet2.posx >= 0 or self.bullet2.posx < self.width:
-                    if game_map[self.bullet2.posy + y][self.bullet2.posx + x] not in {"🟫","🧀"} :
-                        game_map[self.bullet2.posy + y][self.bullet2.posx + x] = "💥"  # hit
-                    else:
-                        game_map[self.bullet2.posy][self.bullet2.posx] = self.bullet2.shape  # Bullet 2🧨
+        if self.bullet2_collision != []:
+            game_map[self.bullet2_collision[0][1]][self.bullet2_collision[0][0]] = "💥"  # hit
+            self.bullet2_collision = []
+                        
         print(
             f"Player 1 Health: {self.tank1.health} | Attack: {self.tank1.attack_power} | Defense: {self.tank1.defense_power}")
         print(
@@ -287,18 +270,20 @@ class TankGame:
                     hurt = self.tank1.attack_power - self.tank2.defense_power
                     if hurt > 0:
                         self.tank2.health -= hurt
+                        self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
                         self.bullet1 = None  # 子弹消失
                 else:
                     for obstacle in self.obstacles:
                         if (self.bullet1.posx, self.bullet1.posy) == (obstacle.posx, obstacle.posy):
                             if isinstance(obstacle, SpecialObstacle):
                                 if obstacle.hit():
-                                    print("test")
                                     self.obstacles.remove(obstacle)  # 移除已摧毁的特殊障碍物
                                     # print("特殊障碍物被摧毁！")
+                                self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
                                 self.bullet1 = None  # 子弹消失
                                 break
                             else:
+                                self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
                                 self.bullet1 = None  # 子弹消失
                                 break
 
@@ -311,6 +296,7 @@ class TankGame:
                     hurt = self.tank2.attack_power - self.tank1.defense_power
                     if hurt > 0:
                         self.tank1.health -= hurt
+                        self.bullet2_collision.append([self.bullet2.posx, self.bullet2.posy])
                         self.bullet2 = None  # 子弹消失
                 else:
                     for obstacle in self.obstacles:
@@ -319,15 +305,17 @@ class TankGame:
                                 if obstacle.hit():
                                     self.obstacles.remove(obstacle)  # 移除已摧毁的特殊障碍物
                                     # print("特殊障碍物被摧毁！")
+                                self.bullet2_collision.append([self.bullet2.posx, self.bullet2.posy])
                                 self.bullet2 = None  # 子弹消失
                                 break
                             else:
+                                self.bullet1_collision.append([self.bullet2.posx, self.bullet2.posy])
                                 self.bullet2 = None  # 子弹消失
                                 break
 
             if self.tank1.is_hit() or self.tank2.is_hit():
                 self.running = False  # 停止游戏
-            time.sleep(0.05)
+            time.sleep(0.15)
 
     def handle_input(self):
         while self.running:
@@ -368,7 +356,7 @@ class TankGame:
 
         while self.running:
             self.draw_map()
-            time.sleep(0.05)  # 刷新地图的频率
+            time.sleep(0.03)  # 刷新地图的频率
 
         # 游戏结束，输出胜利者
         if self.tank1.is_hit():
