@@ -5,11 +5,14 @@ import keyboard
 import os
 
 #图标元组方便替换图标样式
-#              0-坦克1    1-坦克2    2-坦克3   3-玩家1子弹 4-玩家2子弹 5-空地 6-特殊障碍物 7-普通障碍物 8-道具 9-击中特效 10-道具子弹特效 11-道具坦克特效 12-道具样式
-total_shape = ("︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞","💣",     "🧨",     "🟫", "🛖 ",      "🪨 ",      "🧀", "💥",    "⚡",          "⛈️ ",        "🌈")
+
+#              0-坦克1    1-坦克2    2-坦克3   3-玩家1子弹 4-玩家2子弹 5-空地 6-特殊障碍物 7-普通障碍物
+total_shape = ("︽︾《》", "ㅛㅠㅕㅑ", "︿﹀＜＞","💣",     "🧨",     "🟫", "🛖",      "🪨",
+#              8-道具 9-击中特效 10-进攻子弹特效 11-进攻坦克特效 12-进攻道具样式 13-防御子弹特效 14-防御坦克特效 15-防御道具样式
+               "🧀", "💥",    "⚡⚡",          "⛈️",        "🌈",    "🫧",   "👻",   "🎃")
+
 shape_tank1 = -1
 shape_tank2 = -1
-
 
 # 基类Object
 class Object:
@@ -26,10 +29,14 @@ class Tank(Object):
         self.attack_power = 1  # 初始攻击力
         self.defense_power = 0  # 初始防御力
         self.direction = "up"  # 初始朝向
-        self.powerup_active = False  # 是否激活了道具
+        self.powerup_active_bullet = False  # 是否激活了攻击道具
+        self.powerup_active_second = False  # 是否激活了防御道具
         self.powerup_timer = None  # 定时器线程
         self.bullet_shape = bullet_shape  # 初始化子弹形状
         self.tempbullet_shape = bullet_shape  # 备份子弹形状
+        self.temp_attack = self.attack_power # 备份攻击
+        self.temp_defense = self.defense_power # 备份防御
+
 
     def move(self, direction, obstacles, enemy_pos):
         if direction == "up":
@@ -80,11 +87,33 @@ class Tank(Object):
             self.defense_power += powerup.value
         elif powerup.type == "power_bullet":
             self.activate_power_bullet()
+        elif powerup.type == "5_second":
+            self.activate_power_second()
+
+    def activate_power_second(self):
+        if not self.powerup_active_second:
+            self.temp_defense = self.defense_power # 备份当前的防御力
+            self.temp_attack = self.attack_power # 备份当前攻击力
+            self.defense_power = 999  # 无敌了
+            self.attack_power = 1 # 降低攻击
+            self.powerup_active_second = True
+            # 修改发射子弹的形状
+            self.bullet_shape = total_shape[13]  # 使用新子弹的形状
+            self.powerup_timer_second = threading.Timer(10.0, self.deactivate_power_second)  # 10秒后恢复
+            self.powerup_timer_second.start()
+
+    def deactivate_power_second(self):
+        self.defense_power = self.temp_defense # 恢复防御力
+        self.attack_power = self.temp_attack  # 恢复攻击力
+
+        self.powerup_active_second = False
+        self.bullet_shape = self.tempbullet_shape  # 恢复子弹的形状
+
 
     def activate_power_bullet(self):
-        if not self.powerup_active:
+        if not self.powerup_active_bullet:
             self.attack_power *= 2  # 翻倍攻击力
-            self.powerup_active = True
+            self.powerup_active_bullet = True
             # 修改发射子弹的形状
             self.bullet_shape = total_shape[10]  # 使用新的形状
             self.powerup_timer = threading.Timer(5.0, self.deactivate_power_bullet)  # 5秒后恢复
@@ -92,7 +121,7 @@ class Tank(Object):
 
     def deactivate_power_bullet(self):
         self.attack_power //= 2  # 恢复攻击力
-        self.powerup_active = False
+        self.powerup_active_bullet = False
         self.bullet_shape = self.tempbullet_shape  # 恢复原来的形状
 
     def fire_bullet(self):
@@ -107,8 +136,11 @@ class Tank(Object):
         elif self.direction == "right":
             t = total_shape[shape][3]
 
-        if self.powerup_active == True:
+        if self.powerup_active_bullet == True:
             t = total_shape[11]
+        elif self.powerup_active_second == True:
+            t = total_shape[14]
+
         return t
 
     def is_hit(self):
@@ -152,24 +184,11 @@ class SpecialObstacle(Obstacle):
         return False
 
 
-# 子类SpecialObstacle
-class SpecialObstacle(Obstacle):
-    def __init__(self, posx, posy, health=2):
-        super().__init__(posx, posy)
-        self.health = health  # 初始生命值
-
-    def hit(self):
-        self.health -= 1
-        if self.health <= 0:
-            return True  # 返回True表示该障碍物已被摧毁
-        return False
-
-
 # 子类PowerUp
 class PowerUp(Object):
     def __init__(self, posx, posy, type, value):
         super().__init__(posx, posy)
-        self.type = type  # 道具类型: 'health', 'attack', 'defense', 'power_bullet'
+        self.type = type  # 道具类型: 'health', 'attack', 'defense', 'power_bullet' '5_second'
         self.value = value  # 道具加成值
 
 
@@ -213,7 +232,7 @@ class TankGame:
             posy = random.randint(0, self.height - 1)
             if (posx, posy) not in occupied_positions:  # 确保道具位置不与坦克或障碍物重叠
 
-                type = random.choice(["health", "attack", "defense", "power_bullet"])  # 新道具
+                type = random.choice(["health", "attack", "defense", "power_bullet", "5_second"])  # 道具类型
 
                 value = random.randint(1, 2)  # 加成值
                 powerup = PowerUp(posx, posy, type, value)
@@ -240,7 +259,10 @@ class TankGame:
         # 画出道具
         for powerup in self.powerups:
             if powerup.type == 'power_bullet':
-                game_map[powerup.posy][powerup.posx] = total_shape[12]  # 新道具
+
+                game_map[powerup.posy][powerup.posx] = total_shape[12]  # 进攻道具
+            elif powerup.type == '5_second':
+                game_map[powerup.posy][powerup.posx] = total_shape[15] # 防御道具
             else:
                 game_map[powerup.posy][powerup.posx] = total_shape[8]  # 道具
         # 画出子弹
@@ -276,6 +298,7 @@ class TankGame:
         for powerup in self.powerups[:]:  # 创建列表副本以便安全删除
             if (tank.posx, tank.posy) == (powerup.posx, powerup.posy):
                 tank.apply_powerup(powerup)
+
                 self.message.append(f"玩家{1 if tank == self.tank1 else 2}获得了{powerup.type}{'x' if powerup.type=='power_bullet' else '+'}{powerup.value}道具!")
                 self.powerups.remove(powerup)  # 从游戏中移除道具
 
@@ -294,6 +317,7 @@ class TankGame:
                     else :self.message.append(f"玩家1击中玩家2({self.tank2.posy, self.tank2.posx}),但是没有刮花对方的防御，剩余生命值为{self.tank2.health}，挠挠痒罢了......")
                     self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
                     self.bullet1 = None  # 子弹消失
+
                 else:
                     for obstacle in self.obstacles:
                         if (self.bullet1.posx, self.bullet1.posy) == (obstacle.posx, obstacle.posy):
@@ -308,6 +332,7 @@ class TankGame:
                             self.bullet1_collision.append([self.bullet1.posx, self.bullet1.posy])
                             self.bullet1 = None  # 子弹消失
                             break
+
 
             if self.bullet2:
                 self.bullet2.move()
@@ -336,6 +361,7 @@ class TankGame:
                             self.bullet1_collision.append([self.bullet2.posx, self.bullet2.posy])
                             self.bullet2 = None  # 子弹消失
                             break
+
 
             if self.tank1.is_hit() or self.tank2.is_hit():
                 self.running = False  # 停止游戏
@@ -407,12 +433,10 @@ if __name__ == "__main__":
     num_powerups = int(input("请输入道具数量："))
     while num_powerups > (width * height)*0.9:
         num_powerups = int(input("请输入道具数量："))
-    while shape_tank1 not in [0,1,2] or shape_tank2 not in [0,1,2]:
-        shape_tank1 = int(input("请选择玩家一的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
-        print(shape_tank1)
-        
-        shape_tank2 = int(input("请选择玩家二的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
-        print(shape_tank2)
+
+    shape_tank1 = int(input("请选择玩家一的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
+    shape_tank2 = int(input("请选择玩家二的坦克形状:\n1.︽︾《》 2.ㅛㅠㅕㅑ 3.︿﹀＜＞\n")) - 1
+
     print("游戏开始！\n")
     game = TankGame(width, height, num_obstacles, num_powerups)
     input_thread = threading.Thread(target=game.handle_input)
