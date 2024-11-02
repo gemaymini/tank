@@ -302,7 +302,7 @@ class TankGame:
                 elif(powerup.type=='power_defense'): fh='='
                 else: fh='+'
                 m=f"玩家{1 if tank == self.tank1 else 2}获得了{powerup.type}{fh}{powerup.value}道具!"
-                self.message.append()
+                self.message.append(m)
                 self.powerups.remove(powerup)  # 从游戏中移除道具
 
     def move_bullets(self):
