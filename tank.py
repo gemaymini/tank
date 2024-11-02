@@ -87,7 +87,7 @@ class Tank(Object):
             self.defense_power += powerup.value
         elif powerup.type == "power_bullet":
             self.activate_power_bullet()
-        elif powerup.type == "5_second":
+        elif powerup.type == "power_defense":
             self.activate_power_second()
 
     def activate_power_second(self):
@@ -188,7 +188,7 @@ class SpecialObstacle(Obstacle):
 class PowerUp(Object):
     def __init__(self, posx, posy, type, value):
         super().__init__(posx, posy)
-        self.type = type  # 道具类型: 'health', 'attack', 'defense', 'power_bullet' '5_second'
+        self.type = type  # 道具类型: 'health', 'attack', 'defense', 'power_bullet' 'power_defense'
         self.value = value  # 道具加成值
 
 
@@ -232,7 +232,7 @@ class TankGame:
             posy = random.randint(0, self.height - 1)
             if (posx, posy) not in occupied_positions:  # 确保道具位置不与坦克或障碍物重叠
 
-                type = random.choice(["health", "attack", "defense", "power_bullet", "5_second"])  # 道具类型
+                type = random.choice(["health", "attack", "defense", "power_bullet", "power_defense"])  # 道具类型
 
                 value = random.randint(1, 2)  # 加成值
                 powerup = PowerUp(posx, posy, type, value)
@@ -261,7 +261,7 @@ class TankGame:
             if powerup.type == 'power_bullet':
 
                 game_map[powerup.posy][powerup.posx] = total_shape[12]  # 进攻道具
-            elif powerup.type == '5_second':
+            elif powerup.type =='power_defense':
                 game_map[powerup.posy][powerup.posx] = total_shape[15] # 防御道具
             else:
                 game_map[powerup.posy][powerup.posx] = total_shape[8]  # 道具
