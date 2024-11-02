@@ -1,0 +1,80 @@
+@startuml
+
+class Object {
+    +int posx
+    +int posy
+}
+
+class Tank {
+    +int health
+    +int attack_power
+    +int defense_power
+    +String direction
+    +boolean powerup_active
+    +Thread powerup_timer
+    +String bullet_shape
+    +String tempbullet_shape
+    +move(String direction, List obstacles, Tuple enemy_pos)
+    +apply_powerup(PowerUp powerup)
+    +activate_power_bullet()
+    +deactivate_power_bullet()
+    +fire_bullet() : Bullet
+    +Tank_Directions(int shape) : String
+    +is_hit() : boolean
+}
+
+class Bullet {
+    +String direction
+    +String shape
+    +move()
+}
+
+class Obstacle {
+}
+
+class SpecialObstacle {
+    +int health
+    +hit() : boolean
+}
+
+class PowerUp {
+    +String type
+    +int value
+}
+
+class TankGame {
+    +int width
+    +int height
+    +Tank tank1
+    +Tank tank2
+    +List obstacles
+    +List powerups
+    +Bullet bullet1
+    +Bullet bullet2
+    +boolean running
+    +generate_obstacles(int num_obstacles) : List
+    +generate_powerups(int num_powerups) : List
+    +clear_screen()
+    +draw_map()
+    +check_powerup_pickup(Tank tank)
+    +move_bullets()
+    +handle_input()
+    +play()
+}
+
+
+
+
+TankGame --> Tank
+TankGame --> PowerUp
+TankGame --> Obstacle
+TankGame --> Bullet
+
+Object <|-- Tank
+Object <|-- Bullet
+Object <|-- Obstacle
+Object <|-- PowerUp
+Obstacle <|-- SpecialObstacle
+
+
+@enduml
