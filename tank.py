@@ -445,3 +445,4 @@ if __name__ == "__main__":
     input_thread = threading.Thread(target=game.handle_input)
     input_thread.start()
     game.play()
+#hhhhhh
